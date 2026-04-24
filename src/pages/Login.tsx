@@ -1,0 +1,122 @@
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { MonitorSmartphone, Lock, Mail, Loader2 } from 'lucide-react';
+import { loginUser, resetPassword } from '../firebase/auth';
+import toast from 'react-hot-toast';
+
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      await loginUser(email, password);
+      toast.success('¡Bienvenido de nuevo!');
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast.error(error.message || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      toast.error('Por favor, ingresa tu correo electrónico primero');
+      return;
+    }
+    
+    setResetLoading(true);
+    try {
+      await resetPassword(email);
+      toast.success('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
+    } catch (error: any) {
+      toast.error(error.message || 'Error al enviar el correo de recuperación');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex-1 flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 dark:bg-darker transition-colors duration-200">
+      <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-900 p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800">
+        <div>
+          <MonitorSmartphone className="mx-auto h-12 w-12 text-primary" />
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+            Inicia sesión
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+            Gestiona tus sitios y lleva tu negocio al siguiente nivel
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4 rounded-md shadow-sm">
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                id="email-address"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none rounded-xl relative block w-full px-12 py-3 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-800 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm transition-colors"
+                placeholder="Correo electrónico"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="appearance-none rounded-xl relative block w-full px-12 py-3 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-800 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm transition-colors"
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={handleResetPassword}
+              disabled={resetLoading}
+              className="text-sm font-medium text-primary hover:text-indigo-500 transition-colors disabled:opacity-50"
+            >
+              {resetLoading ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
+            </button>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-primary hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
+            >
+              {loading ? (
+                <Loader2 className="animate-spin h-5 w-5 text-white" />
+              ) : 'Ingresar'}
+            </button>
+          </div>
+          <div className="text-center text-sm">
+            <span className="text-gray-600 dark:text-gray-400">¿No tienes cuenta? </span>
+            <Link to="/register" className="font-medium text-primary hover:text-indigo-500 transition-colors">
+              Regístrate aquí
+            </Link>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
