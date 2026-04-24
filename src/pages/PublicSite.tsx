@@ -144,7 +144,7 @@ export default function PublicSite() {
       {/* Brand Watermark */}
       <div className="bg-gray-50 dark:bg-slate-900 py-8 border-t border-gray-100 dark:border-gray-800 text-center">
         <a 
-          href="https://webforgex.netlify.app" 
+          href="https://elkinalejandro30.github.io/WebForgeX" 
           target="_blank" 
           rel="noreferrer"
           className="inline-flex items-center space-x-2 text-gray-400 hover:text-primary transition-colors text-sm font-bold uppercase tracking-widest"

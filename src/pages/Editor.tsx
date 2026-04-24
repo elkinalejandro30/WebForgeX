@@ -523,11 +523,11 @@ export default function Editor() {
 
             <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 mb-8 flex items-center justify-between group">
               <span className="text-sm font-mono text-gray-600 dark:text-gray-300 truncate mr-4">
-                {`${window.location.origin}/site/${site.id}`}
+                {`${window.location.origin}/WebForgeX/site/${site.id}`}
               </span>
               <button 
                 onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/site/${site.id}`);
+                  navigator.clipboard.writeText(`${window.location.origin}/WebForgeX/site/${site.id}`);
                   toast.success('¡Enlace copiado!');
                 }}
                 className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors text-primary"
@@ -539,7 +539,7 @@ export default function Editor() {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button 
-                onClick={() => window.open(`/site/${site.id}`, '_blank')}
+                onClick={() => window.open(`/WebForgeX/site/${site.id}`, '_blank')}
                 className="flex-1 py-4 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 hover:-translate-y-1 transition-all active:scale-95 uppercase tracking-widest text-xs"
               >
                 Abrir sitio

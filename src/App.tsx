@@ -36,7 +36,7 @@ function App() {
   }, [isDarkMode]);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/WebForgeX">
       <div className="min-h-screen flex flex-col font-sans">
         <Toaster position="bottom-right" toastOptions={{
           className: 'dark:bg-slate-800 dark:text-white border border-gray-100 dark:border-gray-700',
