@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Site, Section } from '../store/useStore';
 import BlockRenderer from '../components/BlockRenderer';
 import { Loader2, AlertCircle, Globe } from 'lucide-react';
+import { API_URL } from '../config/api';
 
 export default function PublicSite() {
   const { projectId } = useParams();
