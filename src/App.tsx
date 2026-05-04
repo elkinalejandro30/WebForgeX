@@ -5,12 +5,9 @@ import { Toaster } from 'react-hot-toast';
 
 // Layouts & Components
 import Navbar from './components/Navbar';
-import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
 import Landing from './pages/Landing';
-import Login from './pages/Login';
-import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Templates from './pages/Templates';
 import Editor from './pages/Editor';
@@ -38,30 +35,14 @@ function App() {
         <main className="flex-1 flex flex-col">
           <Routes>
             <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/register" element={<Navigate to="/dashboard" replace />} />
             
-            {/* Protected Routes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/templates" element={
-              <ProtectedRoute>
-                <Templates />
-              </ProtectedRoute>
-            } />
-            <Route path="/editor/:id" element={
-              <ProtectedRoute>
-                <Editor />
-              </ProtectedRoute>
-            } />
-            <Route path="/preview/:id" element={
-              <ProtectedRoute>
-                <Preview />
-              </ProtectedRoute>
-            } />
+            {/* Protected Routes (No longer restricted in prototype mode) */}
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/templates" element={<Templates />} />
+            <Route path="/editor/:id" element={<Editor />} />
+            <Route path="/preview/:id" element={<Preview />} />
 
             {/* Public Route */}
             <Route path="/site/:projectId" element={<PublicSite />} />

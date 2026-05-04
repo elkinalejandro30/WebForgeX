@@ -23,9 +23,14 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
+      user: {
+        id: 1,
+        name: 'Invitado',
+        email: 'invitado@webforgex.local',
+        plan: 'free'
+      },
+      token: 'guest-token',
+      isAuthenticated: true,
       isLoading: false,
       
       setAuth: (user, token) => set({ 
