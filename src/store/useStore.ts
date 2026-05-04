@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useAuthStore } from './useAuthStore';
 
 export type SiteType = 'website' | 'store' | 'blog' | 'landing' | 'portfolio' | 'restaurant' | 'agency' | 'startup';
 
@@ -126,18 +125,6 @@ interface AppState {
   setSavingStatus: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
   setHasUnsavedChanges: (hasChanges: boolean) => void;
 }
-
-import { API_URL as BASE_API_URL } from '../config/api';
-
-const API_URL = `${BASE_API_URL}/api`;
-
-const getHeaders = () => {
-  const token = useAuthStore.getState().token;
-  return {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  };
-};
 
 export const useStore = create<AppState>()(
   persist(

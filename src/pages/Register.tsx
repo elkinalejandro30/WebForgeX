@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MonitorSmartphone, Lock, Mail, User as UserIcon } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import { API_URL } from '../config/api';
 import toast from 'react-hot-toast';
 
 export default function Register() {

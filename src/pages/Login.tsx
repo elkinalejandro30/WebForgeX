@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MonitorSmartphone, Lock, Mail, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import { API_URL } from '../config/api';
 import toast from 'react-hot-toast';
 
 export default function Login() {
@@ -39,21 +38,8 @@ export default function Login() {
       return;
     }
     
-    try {
-      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await response.json();
-      if (response.ok) {
-        toast.success(data.message);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (err) {
-      toast.error('Error al solicitar recuperación');
-    }
+    // Simulación de recuperación para prototipo
+    toast.success('Se ha enviado un enlace de recuperación (Simulado)');
   };
 
   return (
