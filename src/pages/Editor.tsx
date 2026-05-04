@@ -21,7 +21,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ArrowLeft, Monitor, Smartphone, Eye, Layout, CheckCircle2, Loader2, Settings, GripVertical, Save, AlertCircle, Rocket } from 'lucide-react';
+import { ArrowLeft, Monitor, Smartphone, Eye, Layout, CheckCircle2, Loader2, Settings, GripVertical, Save, Rocket } from 'lucide-react';
 
 // Sortable Wrapper Component for Sections
 const SortableSection = ({ section, activeSectionId, editorMode, siteId, setActiveSectionId, updateSection }: any) => {
@@ -106,7 +106,7 @@ export default function Editor() {
   const { 
     sites, updateSiteTheme, addSection, removeSection, updateSection, 
     updateSectionStyle, updateSite, duplicateSection, reorderSections,
-    savingStatus, setSavingStatus, hasUnsavedChanges, setHasUnsavedChanges, lastSaved,
+    savingStatus, setSavingStatus, hasUnsavedChanges, setHasUnsavedChanges,
     togglePublishSite
   } = useStore();
   const site = sites.find(s => s.id === id);
@@ -256,11 +256,36 @@ export default function Editor() {
   const fontClass = fontMap[theme.fontFamily] || 'font-inter';
 
   return (
-    <div className={`flex-1 flex flex-col md:flex-row bg-gray-50 dark:bg-darker transition-colors duration-200 overflow-hidden h-[calc(100vh-4rem)] ${fontClass}`}>
+    <div className={`flex-1 flex flex-col lg:flex-row bg-gray-50 dark:bg-darker transition-colors duration-200 overflow-hidden h-[calc(100vh-4rem)] ${fontClass}`}>
       
+      {/* Mobile Sidebar Toggle (Bottom Bar) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-gray-800 h-16 z-50 flex items-center justify-around px-4">
+        <button 
+          onClick={() => { setEditorMode('edit'); setActiveTab('content'); }}
+          className={`flex flex-col items-center space-y-1 ${activeTab === 'content' && editorMode === 'edit' ? 'text-primary' : 'text-gray-400'}`}
+        >
+          <Layout className="w-5 h-5" />
+          <span className="text-[10px] font-bold uppercase">Bloques</span>
+        </button>
+        <button 
+          onClick={() => { setEditorMode('edit'); setActiveTab('design'); }}
+          className={`flex flex-col items-center space-y-1 ${activeTab === 'design' && editorMode === 'edit' ? 'text-primary' : 'text-gray-400'}`}
+        >
+          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-primary to-purple-500" />
+          <span className="text-[10px] font-bold uppercase">Diseño</span>
+        </button>
+        <button 
+          onClick={() => setEditorMode(editorMode === 'preview' ? 'edit' : 'preview')}
+          className={`flex flex-col items-center space-y-1 ${editorMode === 'preview' ? 'text-primary' : 'text-gray-400'}`}
+        >
+          <Eye className="w-5 h-5" />
+          <span className="text-[10px] font-bold uppercase">Vista Previa</span>
+        </button>
+      </div>
+
       {/* Sidebar Editor */}
       {editorMode === 'edit' && (
-      <div className="w-full md:w-80 lg:w-96 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-gray-800 flex flex-col shadow-xl z-20 flex-shrink-0 h-full transition-all duration-300">
+      <div className="fixed lg:relative inset-0 lg:inset-auto w-full lg:w-96 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-gray-800 flex flex-col shadow-xl z-40 lg:z-20 flex-shrink-0 h-full transition-all duration-300 pb-16 lg:pb-0">
         <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-10">
           <div className="flex items-center space-x-3 flex-1 min-w-0">
             <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500 flex-shrink-0">
@@ -270,7 +295,7 @@ export default function Editor() {
           </div>
 
           <div className="flex items-center justify-center flex-shrink-0 ml-2">
-            <div className="flex items-center mr-4 text-[10px] font-bold">
+            <div className="hidden xs:flex items-center mr-4 text-[10px] font-bold">
               {savingStatus === 'saving' ? (
                 <div className="flex items-center text-amber-500 animate-pulse">
                   <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
@@ -279,12 +304,7 @@ export default function Editor() {
               ) : savingStatus === 'saved' ? (
                 <div className="flex items-center text-emerald-500">
                   <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
-                  <span>GUARDADO {lastSaved && `HACE ${Math.floor((Date.now() - lastSaved) / 1000)}s`}</span>
-                </div>
-              ) : hasUnsavedChanges ? (
-                <div className="flex items-center text-rose-500">
-                  <AlertCircle className="h-3.5 w-3.5 mr-1.5" />
-                  <span>CAMBIOS SIN GUARDAR</span>
+                  <span>GUARDADO</span>
                 </div>
               ) : null}
             </div>
@@ -301,15 +321,15 @@ export default function Editor() {
             <button 
               onClick={handlePublish}
               disabled={isPublishing}
-              className="flex items-center space-x-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 sm:px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPublishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
-              <span className="hidden sm:block">{site.published ? 'Actualizar' : 'Publicar'}</span>
+              <span className="hidden xs:block">{site.published ? 'Actualizar' : 'Publicar'}</span>
             </button>
           </div>
         </div>
 
-        <div className="flex border-b border-gray-200 dark:border-gray-800">
+        <div className="hidden lg:flex border-b border-gray-200 dark:border-gray-800">
           <button className={`flex-1 py-3 text-sm font-medium flex items-center justify-center space-x-2 ${activeTab === 'content' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`} onClick={() => setActiveTab('content')}>
             <Layout className="h-4 w-4" /><span>Bloques</span>
           </button>
@@ -339,11 +359,11 @@ export default function Editor() {
       )}
 
       {/* Preview Area */}
-      <div className={`flex-1 bg-gray-200 dark:bg-black p-4 sm:p-8 overflow-y-auto relative flex flex-col items-center transition-all duration-300`}>
+      <div className={`flex-1 bg-gray-200 dark:bg-black p-4 lg:p-8 overflow-y-auto relative flex flex-col items-center transition-all duration-300 ${editorMode === 'edit' ? 'hidden lg:flex' : 'flex'} pb-20 lg:pb-8`}>
         
         {/* Guía de Usuario Flotante */}
         {showGuide && editorMode === 'edit' && sections.length > 0 && (
-          <div className="absolute bottom-8 right-8 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-2xl border border-primary/20 z-50 max-w-sm animate-fade-in">
+          <div className="absolute bottom-8 right-8 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-2xl border border-primary/20 z-50 max-w-sm animate-fade-in hidden lg:block">
             <div className="flex justify-between items-start mb-2">
               <h4 className="font-bold text-primary flex items-center"><CheckCircle2 className="w-4 h-4 mr-1" /> Guía Rápida</h4>
               <button onClick={() => setShowGuide(false)} className="text-gray-400 hover:text-gray-600">✕</button>
@@ -360,8 +380,8 @@ export default function Editor() {
         )}
 
         {/* Top Bar: Viewport Toggles & Preview Button */}
-        <div className="w-full max-w-5xl flex justify-between items-center mb-8 sticky top-0 z-30 px-4 py-2 bg-gray-50/50 dark:bg-black/50 backdrop-blur-xl rounded-2xl border border-white/10 shadow-sm">
-          <div className="flex bg-white dark:bg-slate-900 rounded-xl shadow-inner border border-gray-200 dark:border-gray-800 p-1">
+        <div className="w-full max-w-5xl flex justify-between items-center mb-4 lg:mb-8 sticky top-0 z-30 px-2 sm:px-4 py-2 bg-gray-50/50 dark:bg-black/50 backdrop-blur-xl rounded-2xl border border-white/10 shadow-sm">
+          <div className="hidden md:flex bg-white dark:bg-slate-900 rounded-xl shadow-inner border border-gray-200 dark:border-gray-800 p-1">
             <button 
               onClick={() => setPreviewMode('desktop')}
               className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-300 ${previewMode === 'desktop' ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-[1.05]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
@@ -376,20 +396,20 @@ export default function Editor() {
             </button>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 ml-auto md:ml-0">
             <button 
               onClick={() => {
                 setEditorMode(editorMode === 'edit' ? 'preview' : 'edit');
                 setActiveSectionId(null);
               }}
-              className={`group flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.2em] px-6 py-3 rounded-xl shadow-sm border transition-all duration-300 ${editorMode === 'preview' ? 'bg-emerald-500 text-white border-emerald-400 hover:bg-emerald-600' : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:border-primary border-gray-200 dark:border-gray-800'}`}
+              className={`group flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.2em] px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl shadow-sm border transition-all duration-300 ${editorMode === 'preview' ? 'bg-emerald-500 text-white border-emerald-400 hover:bg-emerald-600' : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:border-primary border-gray-200 dark:border-gray-800'}`}
             >
               {editorMode === 'edit' ? <Eye className="h-3.5 w-3.5 group-hover:animate-pulse" /> : <Settings className="h-3.5 w-3.5 animate-spin-slow" />}
               <span>{editorMode === 'edit' ? 'Vista Previa' : 'Editor'}</span>
             </button>
             <button 
               onClick={() => window.open(`${import.meta.env.BASE_URL}preview/${site.id}`, '_blank')}
-              className="p-3 text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:border-primary border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm transition-all hover:scale-110 active:scale-90"
+              className="p-2.5 sm:p-3 text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:border-primary border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm transition-all hover:scale-110 active:scale-90"
               title="Abrir en nueva pestaña"
             >
               <Layout className="h-4 w-4" />
@@ -399,7 +419,7 @@ export default function Editor() {
 
         {/* Live Site Mockup Canvas */}
         <div 
-          className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] relative ${previewMode === 'desktop' ? 'w-full max-w-6xl' : 'w-full max-w-[420px] pt-12 pb-12'}`}
+          className={`transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] relative ${previewMode === 'desktop' ? 'w-full max-w-6xl' : 'w-full max-w-[420px] pt-4 lg:pt-12 pb-4 lg:pb-12'}`}
           style={{
             '--color-primary': theme.primaryColor,
             '--color-secondary': theme.secondaryColor,
@@ -409,7 +429,7 @@ export default function Editor() {
         >
           {/* Mobile Frame Decoration */}
           {previewMode === 'mobile' && (
-            <div className="absolute inset-0 bg-slate-900 rounded-[3.5rem] shadow-[0_0_0_12px_#1e293b,0_20px_50px_rgba(0,0,0,0.5)] pointer-events-none z-0">
+            <div className="absolute inset-0 bg-slate-900 rounded-none sm:rounded-[3.5rem] shadow-[0_0_0_12px_#1e293b,0_20px_50px_rgba(0,0,0,0.5)] pointer-events-none z-0 hidden sm:block">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-slate-900 rounded-b-3xl z-10 flex items-center justify-center space-x-2">
                 <div className="w-8 h-1 bg-slate-800 rounded-full"></div>
                 <div className="w-2 h-2 bg-slate-800 rounded-full"></div>
@@ -419,7 +439,7 @@ export default function Editor() {
 
           {/* Browser Top Bar (Desktop Only) */}
           {previewMode === 'desktop' && (
-            <div className="bg-white dark:bg-slate-900 rounded-t-2xl border-t border-l border-r border-gray-300 dark:border-gray-800 flex items-center px-6 py-3 space-x-3 shadow-sm relative z-10">
+            <div className="bg-white dark:bg-slate-900 rounded-t-2xl border-t border-l border-r border-gray-300 dark:border-gray-800 hidden lg:flex items-center px-6 py-3 space-x-3 shadow-sm relative z-10">
               <div className="flex space-x-1.5">
                 <div className="w-3 h-3 rounded-full bg-[#FF5F56] shadow-inner"></div>
                 <div className="w-3 h-3 rounded-full bg-[#FFBD2E] shadow-inner"></div>
@@ -433,7 +453,7 @@ export default function Editor() {
 
           <div className={`
             bg-pageBg text-pageText shadow-2xl overflow-y-auto overflow-x-hidden border-x border-b border-gray-300 dark:border-gray-800 flex flex-col transition-all duration-700 relative z-10
-            ${previewMode === 'mobile' ? 'w-[375px] mx-auto h-[750px] rounded-[2.5rem] scrollbar-hide' : 'w-full min-h-[700px] rounded-b-2xl'}
+            ${previewMode === 'mobile' ? 'w-full sm:w-[375px] mx-auto h-[600px] sm:h-[750px] rounded-none sm:rounded-[2.5rem] scrollbar-hide' : 'w-full min-h-[700px] rounded-none lg:rounded-b-2xl'}
           `}>
             
             {/* Mock Navbar */}
