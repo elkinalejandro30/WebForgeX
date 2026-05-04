@@ -3,10 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import debounce from 'lodash.debounce';
 import { useStore } from '../store/useStore';
-import { useAuthStore } from '../store/useAuthStore';
 import EditorSidebar from '../components/EditorSidebar';
 import BlockRenderer from '../components/BlockRenderer';
-import { saveProject } from '../firebase/firestore';
 import { 
   DndContext, 
   closestCenter,
@@ -111,7 +109,6 @@ export default function Editor() {
     savingStatus, setSavingStatus, hasUnsavedChanges, setHasUnsavedChanges, lastSaved,
     togglePublishSite
   } = useStore();
-  const user = useAuthStore(state => state.user);
   const site = sites.find(s => s.id === id);
   const [activeTab, setActiveTab] = useState<'content' | 'design' | 'config'>('content');
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -120,6 +117,15 @@ export default function Editor() {
   const [showGuide, setShowGuide] = useState(true);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [, setTick] = useState(0);
+
+  // Force re-render every second to update "saved X seconds ago"
+  useEffect(() => {
+    if (savingStatus === 'saved') {
+      const interval = setInterval(() => setTick(t => t + 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [savingStatus]);
 
   // Drag and Drop Sensors
   const sensors = useSensors(
@@ -153,71 +159,60 @@ export default function Editor() {
   }, [site]);
 
   const handleSave = async (isManual = false) => {
-    if (!site || !user?.uid) return;
+    if (!site) return;
     
-    // Si no es manual, verificar si hay cambios reales
-    const currentData = JSON.stringify({
-      sections: site.sections,
-      theme: site.theme,
-      name: site.name
-    });
-
-    if (!isManual && currentData === lastSavedDataRef.current) {
-      return;
-    }
-
     setSavingStatus('saving');
     try {
-      // Guardado ligero (solo metadatos) en Firestore
-      await saveProject(site, user.uid, false);
+      await updateSite(site.id, {
+        sections: site.sections,
+        theme: site.theme,
+        name: site.name
+      });
       
-      lastSavedDataRef.current = currentData;
+      lastSavedDataRef.current = JSON.stringify({
+        sections: site.sections,
+        theme: site.theme,
+        name: site.name
+      });
+      
       setSavingStatus('saved');
       setHasUnsavedChanges(false);
-      if (isManual) toast.success('Progreso guardado (Cloud Sync)');
+      if (isManual) toast.success('Progreso guardado en la base de datos');
       setTimeout(() => setSavingStatus('idle'), 3000);
-    } catch (error) {
+    } catch (err) {
       setSavingStatus('error');
-      console.error("Save failed:", error);
-      toast.error('Error al sincronizar con la nube');
+      toast.error('Error al guardar en el servidor');
     }
   };
 
-  const handlePublish = async () => {
-    if (!site || !user?.uid) return;
+  const handlePublish = () => {
+    if (!site) return;
     
     setIsPublishing(true);
     const toastId = toast.loading('Publicando sitio...');
     
-    try {
-      // Guardado completo en Firestore
-      await saveProject(site, user.uid, true);
+    setTimeout(() => {
       togglePublishSite(site.id);
-      
       toast.success('¡Sitio publicado con éxito!', { id: toastId });
       setHasUnsavedChanges(false);
       setShowPublishModal(true);
-    } catch (error) {
-      console.error("Publish failed:", error);
-      toast.error('Error al publicar el sitio', { id: toastId });
-    } finally {
       setIsPublishing(false);
-    }
+    }, 1000);
   };
 
-  // Debounced save (Solo ligero)
+  // Debounced save
   const debouncedSave = useCallback(
-    debounce(() => handleSave(false), 5000), // Más tiempo para auto-save para ahorrar Firebase
-    [site, user?.uid]
+    debounce(() => handleSave(false), 2000),
+    [site]
   );
 
   useEffect(() => {
     if (!site) navigate('/dashboard');
   }, [site, navigate]);
 
-  // Detect changes and trigger auto-save (Local is instant via Zustand persist)
+  // Detect changes and trigger auto-save
   useEffect(() => {
-    if (!site || !user?.uid) return;
+    if (!site) return;
     
     const currentData = JSON.stringify({
       sections: site.sections,
@@ -284,7 +279,7 @@ export default function Editor() {
               ) : savingStatus === 'saved' ? (
                 <div className="flex items-center text-emerald-500">
                   <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
-                  <span>GUARDADO {lastSaved && `HACE ${Math.floor((new Date().getTime() - lastSaved.getTime()) / 1000)}s`}</span>
+                  <span>GUARDADO {lastSaved && `HACE ${Math.floor((Date.now() - lastSaved) / 1000)}s`}</span>
                 </div>
               ) : hasUnsavedChanges ? (
                 <div className="flex items-center text-rose-500">
@@ -393,7 +388,7 @@ export default function Editor() {
               <span>{editorMode === 'edit' ? 'Vista Previa' : 'Editor'}</span>
             </button>
             <button 
-              onClick={() => window.open(`/preview/${site.id}`, '_blank')}
+              onClick={() => window.open(`${import.meta.env.BASE_URL}preview/${site.id}`, '_blank')}
               className="p-3 text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 hover:border-primary border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm transition-all hover:scale-110 active:scale-90"
               title="Abrir en nueva pestaña"
             >
@@ -523,11 +518,11 @@ export default function Editor() {
 
             <div className="bg-gray-50 dark:bg-slate-800 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 mb-8 flex items-center justify-between group">
               <span className="text-sm font-mono text-gray-600 dark:text-gray-300 truncate mr-4">
-                {`${window.location.origin}/WebForgeX/site/${site.id}`}
+                {`${window.location.origin}${import.meta.env.BASE_URL}site/${site.id}`}
               </span>
               <button 
                 onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/WebForgeX/site/${site.id}`);
+                  navigator.clipboard.writeText(`${window.location.origin}${import.meta.env.BASE_URL}site/${site.id}`);
                   toast.success('¡Enlace copiado!');
                 }}
                 className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors text-primary"
@@ -539,7 +534,7 @@ export default function Editor() {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <button 
-                onClick={() => window.open(`/WebForgeX/site/${site.id}`, '_blank')}
+                onClick={() => window.open(`${import.meta.env.BASE_URL}site/${site.id}`, '_blank')}
                 className="flex-1 py-4 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 hover:-translate-y-1 transition-all active:scale-95 uppercase tracking-widest text-xs"
               >
                 Abrir sitio

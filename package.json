@@ -15,7 +15,6 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@emailjs/browser": "^4.4.1",
     "@types/lodash.debounce": "^4.0.9",
-    "firebase": "^12.12.1",
     "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.453.0",
     "react": "^18.3.1",

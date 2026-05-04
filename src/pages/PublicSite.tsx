@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getProjectById } from '../firebase/firestore';
-import { Site } from '../store/useStore';
+import { Site, Section } from '../store/useStore';
 import BlockRenderer from '../components/BlockRenderer';
 import { Loader2, AlertCircle, Globe } from 'lucide-react';
 
@@ -13,33 +12,24 @@ export default function PublicSite() {
 
   useEffect(() => {
     const fetchSite = async () => {
-      if (!projectId) {
-        console.error("No projectId found in URL");
-        return;
-      }
-      
-      console.log("Fetching project with ID:", projectId);
+      if (!projectId) return;
       
       try {
         setLoading(true);
-        const data = await getProjectById(projectId);
+        const res = await fetch(`${API_URL}/api/site/${projectId}`);
+        const data = await res.json();
         
-        console.log("Project Data received:", data);
-
-        if (data) {
+        if (res.ok) {
           if (data.published) {
             setSite(data);
           } else {
-            console.warn("Project found but NOT published");
             setError('Este sitio aún no ha sido publicado.');
           }
         } else {
-          console.error("Project NOT found in Firestore");
-          setError('El sitio solicitado no existe.');
+          setError(data.message || 'El sitio solicitado no existe.');
         }
       } catch (err) {
-        console.error("Error fetching public site from Firestore:", err);
-        setError('Error al cargar el sitio. Por favor, inténtalo de nuevo más tarde.');
+        setError('Error de conexión con el servidor.');
       } finally {
         setLoading(false);
       }
@@ -114,7 +104,7 @@ export default function PublicSite() {
         </div>
         
         <div className="hidden sm:flex space-x-6 md:space-x-8 text-sm font-medium">
-          {sections.filter(s => s.type !== 'footer').map(sec => (
+          {sections.filter((s: Section) => s.type !== 'footer').map((sec: Section) => (
             <button 
               key={`nav-${sec.id}`}
               onClick={() => scrollToSection(sec.id)}
@@ -132,7 +122,7 @@ export default function PublicSite() {
       </nav>
 
       <main className="flex-1 flex flex-col bg-transparent">
-        {sections.map(sec => (
+        {sections.map((sec: Section) => (
           <BlockRenderer 
             key={sec.id}
             section={sec} 

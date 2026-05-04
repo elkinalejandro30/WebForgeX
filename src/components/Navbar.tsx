@@ -1,18 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { logoutUser } from '../firebase/auth';
 import { Moon, Sun, MonitorSmartphone, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const { isDarkMode, toggleDarkMode } = useStore();
-  const user = useAuthStore((state) => state.user);
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await logoutUser();
+      logout();
       toast.success('Sesión cerrada');
       navigate('/');
     } catch (error) {
@@ -42,6 +41,9 @@ export default function Navbar() {
 
             {user ? (
               <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium text-gray-500 hidden md:block">
+                  Hola, {user.name}
+                </span>
                 <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
                   Dashboard
                 </Link>

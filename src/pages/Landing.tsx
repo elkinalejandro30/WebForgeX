@@ -451,12 +451,12 @@ export default function Landing() {
               >
                 Empezar gratis ahora
               </Link>
-              <Link
-                to="/pricing"
+              <a
+                href="#pricing"
                 className="bg-primary/20 text-white border-2 border-white/30 hover:bg-white/10 px-10 py-5 rounded-2xl font-black text-xl transition-all active:scale-95"
               >
                 Ver precios
-              </Link>
+              </a>
             </div>
           </div>
         </div>

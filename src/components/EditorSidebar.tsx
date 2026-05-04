@@ -4,14 +4,11 @@ import { useAuthStore } from '../store/useAuthStore';
 import toast from 'react-hot-toast';
 import { Layout, Grid, Plus, ArrowUp, ArrowDown, Trash2, Copy, AlignLeft, AlignCenter, AlignRight, Link, Share2, Upload, Loader2, Globe, Search, Lock as LockIcon } from 'lucide-react';
 
-import { uploadImage } from '../firebase/storage';
-
 // Reusable Image Uploader Component with Optimization
 const ImageInput = ({ url, onChange, label = "Imagen" }: { url: string, onChange: (url: string) => void, label?: string }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const user = useAuthStore(state => state.user);
 
   const optimizeImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -66,10 +63,6 @@ const ImageInput = ({ url, onChange, label = "Imagen" }: { url: string, onChange
     }
 
     if (!file) return;
-    if (!user?.uid) {
-      toast.error('Debes iniciar sesión para subir imágenes');
-      return;
-    }
 
     if (file.size > 5 * 1024 * 1024) {
       toast.error('La imagen no debe superar los 5MB para mantener el rendimiento');
@@ -85,12 +78,11 @@ const ImageInput = ({ url, onChange, label = "Imagen" }: { url: string, onChange
     setIsUploading(true);
     try {
       const optimizedDataUrl = await optimizeImage(file);
-      // Sube directamente a Firebase Storage
-      const storageUrl = await uploadImage(optimizedDataUrl, user.uid);
-      onChange(storageUrl);
-      toast.success('Imagen optimizada y subida a la nube');
+      // Guardado local como Base64 (Zustand persist lo guardará en localStorage)
+      onChange(optimizedDataUrl);
+      toast.success('Imagen optimizada y guardada localmente');
     } catch (error) {
-      toast.error('Error al procesar o subir la imagen');
+      toast.error('Error al procesar la imagen');
     } finally {
       setIsUploading(false);
       setDragActive(false);

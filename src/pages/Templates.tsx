@@ -4,7 +4,6 @@ import { useStore, SiteType, Section, Site } from '../store/useStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { Globe, ShoppingBag, BookOpen, LayoutTemplate, ArrowRight, Briefcase, Utensils, UserCircle, X, Zap, MessageCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { createProject } from '../firebase/firestore';
 
 interface Template {
   id: string;
@@ -658,17 +657,14 @@ export default function Templates() {
         stats: { views: 0, clicks: 0, conversions: 0 },
         theme: previewTemplate.defaultTheme,
         sections: customSections,
-        userId: user!.uid,
-        objective: wizardParams.objective || wizardParams.productType || wizardParams.theme || '',
-        contactEmail: wizardParams.contact || '',
+        userId: user!.id,
       };
 
-      // Guardar en Firestore primero para obtener el ID real de Firebase
-      const firestoreId = await createProject(siteData, user!.uid);
+      const newId = `site-${Date.now()}`;
 
-      addSite({
+      await addSite({
         ...siteData,
-        id: firestoreId,
+        id: newId,
       } as Site);
 
       toast.success('¡Sitio creado con éxito!', { id: toastId });
@@ -680,7 +676,7 @@ export default function Templates() {
       setIsGenerating(false);
       
       console.log("Redirigiendo al editor...");
-      navigate(`/editor/${firestoreId}`);
+      navigate(`/editor/${newId}`);
 
     } catch (error) {
       console.error("Error crítico creando el proyecto:", error);

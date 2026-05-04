@@ -59,7 +59,7 @@ export const PLANS: Plan[] = [
       { text: 'Dominio personalizado propio', included: true },
       { text: 'Sin marca de agua', included: true },
       { text: 'Bloques Premium (Galerías HD, FAQs)', included: true },
-      { text: 'Base de Datos Firebase integrada', included: true },
+      { text: 'Base de Datos SQL integrada', included: true },
       { text: 'Acceso a funciones Beta', included: true },
       { text: 'Apoyo del equipo de desarrollo', included: true },
       { text: 'Soporte Prioritario WhatsApp/Email', included: true }

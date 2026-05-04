@@ -1,17 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useAuthStore } from './useAuthStore';
 
 export type SiteType = 'website' | 'store' | 'blog' | 'landing' | 'portfolio' | 'restaurant' | 'agency' | 'startup';
 
 export type SectionType = 'hero' | 'services' | 'about' | 'gallery' | 'testimonials' | 'cta' | 'contact' | 'faq' | 'footer' | 'products' | 'articles' | 'menu' | 'projects' | 'social';
 
 export interface SectionStyle {
-  padding: string; // 'py-8', 'py-16', 'py-24'
-  alignment: string; // 'text-left', 'text-center', 'text-right'
-  backgroundColor: string; // 'bg-white', 'bg-gray-50', etc.
+  padding: string;
+  alignment: string;
+  backgroundColor: string;
 }
 
-// Discriminator types for strong typing
 export type SocialData = { 
   title: string; 
   layout: 'horizontal' | 'vertical' | 'grid';
@@ -97,36 +97,21 @@ export interface Site {
   stats: SiteStats;
   theme: SiteTheme;
   sections: Section[];
-  userId?: string;
-  objective?: string;
-  contactEmail?: string;
-}
-
-export interface User {
-  email: string;
-  name: string;
+  userId?: number;
 }
 
 interface AppState {
-  // Theme
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   
-  // Auth
-  user: User | null;
-  login: (user: User) => void;
-  logout: () => void;
-  
-  // Sites
   sites: Site[];
-  setSites: (sites: Site[]) => void;
-  addSite: (site: Site) => void;
-  updateSite: (id: string, updates: Partial<Site>) => void;
-  deleteSite: (id: string) => void;
+  fetchSites: () => Promise<void>;
+  addSite: (site: Site) => Promise<void>;
+  updateSite: (id: string, updates: Partial<Site>) => Promise<void>;
+  deleteSite: (id: string) => Promise<void>;
   duplicateSite: (id: string) => void;
-  togglePublishSite: (id: string) => void;
+  togglePublishSite: (id: string) => Promise<void>;
   
-  // Editor Specific Actions
   updateSiteTheme: (id: string, theme: Partial<SiteTheme>) => void;
   addSection: (siteId: string, section: Omit<Section, 'id'>) => void;
   removeSection: (siteId: string, sectionId: string) => void;
@@ -135,59 +120,97 @@ interface AppState {
   duplicateSection: (siteId: string, sectionId: string) => void;
   reorderSections: (siteId: string, startIndex: number, endIndex: number) => void;
 
-  // Saving state
   savingStatus: 'idle' | 'saving' | 'saved' | 'error';
-  lastSaved: Date | null;
   hasUnsavedChanges: boolean;
+  lastSaved: number | null;
   setSavingStatus: (status: 'idle' | 'saving' | 'saved' | 'error') => void;
   setHasUnsavedChanges: (hasChanges: boolean) => void;
 }
 
-const generateMockStats = (): SiteStats => ({
-  views: Math.floor(Math.random() * 5000) + 100,
-  clicks: Math.floor(Math.random() * 800) + 20,
-  conversions: Math.floor(Math.random() * 100) + 1,
-});
+import { API_URL as BASE_API_URL } from '../config/api';
+
+const API_URL = `${BASE_API_URL}/api`;
+
+const getHeaders = () => {
+  const token = useAuthStore.getState().token;
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+};
 
 export const useStore = create<AppState>()(
   persist(
-    (set) => ({
-      // Theme
+    (set, get) => ({
       isDarkMode: false,
       toggleDarkMode: () => set((state) => {
         const newMode = !state.isDarkMode;
-        if (newMode) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
+        document.documentElement.classList.toggle('dark', newMode);
         return { isDarkMode: newMode };
       }),
       
-      // Auth
-      user: null,
-      login: (user) => set({ user }),
-      logout: () => set({ user: null }),
-      
-      // Sites
       sites: [],
-      setSites: (sites) => set({ sites }),
-      addSite: (site) => set((state) => {
-        console.log("Guardando nuevo sitio en Zustand:", site);
-        return { 
-          sites: [...(state.sites || []), { ...site, stats: site.stats || generateMockStats(), published: site.published || false }] 
-        };
-      }),
-      updateSite: (id, updates) => set((state) => ({
-        sites: state.sites.map(site => site.id === id ? { ...site, ...updates } : site)
-      })),
-      deleteSite: (id) => set((state) => ({
-        sites: state.sites.filter(site => site.id !== id)
-      })),
-      duplicateSite: (id) => set((state) => {
-        const siteToDuplicate = state.sites.find(s => s.id === id);
-        if (!siteToDuplicate) return state;
-        
+      fetchSites: async () => {
+        try {
+          const res = await fetch(`${API_URL}/sites`, { headers: getHeaders() });
+          if (res.ok) {
+            const data = await res.json();
+            set({ sites: data });
+          }
+        } catch (err) {
+          console.error("Error fetching sites:", err);
+        }
+      },
+      addSite: async (site) => {
+        try {
+          const res = await fetch(`${API_URL}/sites`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(site)
+          });
+          if (res.ok) {
+            set((state) => ({ sites: [...state.sites, site] }));
+          }
+        } catch (err) {
+          console.error("Error adding site:", err);
+        }
+      },
+      updateSite: async (id, updates) => {
+        const site = get().sites.find(s => s.id === id);
+        if (!site) return;
+        const updatedSite = { ...site, ...updates };
+        try {
+          const res = await fetch(`${API_URL}/sites/${id}`, {
+            method: 'PUT',
+            headers: getHeaders(),
+            body: JSON.stringify(updatedSite)
+          });
+          if (res.ok) {
+            set((state) => ({
+              sites: state.sites.map(s => s.id === id ? updatedSite : s),
+              lastSaved: Date.now()
+            }));
+          }
+        } catch (err) {
+          console.error("Error updating site:", err);
+        }
+      },
+      deleteSite: async (id) => {
+        try {
+          const res = await fetch(`${API_URL}/sites/${id}`, {
+            method: 'DELETE',
+            headers: getHeaders()
+          });
+          if (res.ok) {
+            set((state) => ({ sites: state.sites.filter(s => s.id !== id) }));
+          }
+        } catch (err) {
+          console.error("Error deleting site:", err);
+        }
+      },
+      duplicateSite: (id) => {
+        const siteToDuplicate = get().sites.find(s => s.id === id);
+        if (!siteToDuplicate) return;
         const newSite: Site = {
           ...siteToDuplicate,
           id: `site-${Date.now()}`,
@@ -197,91 +220,54 @@ export const useStore = create<AppState>()(
           stats: { views: 0, clicks: 0, conversions: 0 },
           sections: siteToDuplicate.sections.map(sec => ({ ...sec, id: `sec-${Date.now()}-${Math.random()}` }))
         };
-        
-        return { sites: [...state.sites, newSite] };
-      }),
-      togglePublishSite: (id) => set((state) => ({
-        sites: state.sites.map(site => site.id === id ? { ...site, published: !site.published } : site)
-      })),
+        get().addSite(newSite);
+      },
+      togglePublishSite: async (id) => {
+        const site = get().sites.find(s => s.id === id);
+        if (site) {
+          await get().updateSite(id, { published: !site.published });
+        }
+      },
       
-      // Editor Actions
       updateSiteTheme: (id, theme) => set((state) => ({
         sites: state.sites.map(site => site.id === id ? { ...site, theme: { ...site.theme, ...theme } } : site)
       })),
       addSection: (siteId, section) => set((state) => ({
         sites: state.sites.map(site => {
           if (site.id !== siteId) return site;
-          const defaultStyle: SectionStyle = { padding: 'py-16', alignment: 'text-center', backgroundColor: 'bg-transparent' };
-          
-          // Default data for complex sections to avoid blank renders
-          let defaultData = section.data;
-          if (section.type === 'products' && (!(defaultData as any).items || (defaultData as any).items.length === 0)) {
-            defaultData = {
-              title: 'Nuestros Productos',
-              items: [{ name: 'Producto Ejemplo', price: '$99.00', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80' }]
-            } as any;
-          } else if (section.type === 'articles' && (!(defaultData as any).items || (defaultData as any).items.length === 0)) {
-            defaultData = {
-              title: 'Últimos Artículos',
-              items: [{ title: 'Artículo de Ejemplo', excerpt: 'Resumen del artículo...', image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&q=80' }]
-            } as any;
-          } else if (section.type === 'projects' && (!(defaultData as any).items || (defaultData as any).items.length === 0)) {
-            defaultData = {
-              title: 'Mis Proyectos',
-              items: [{ title: 'Proyecto Ejemplo', category: 'Diseño', image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80' }]
-            } as any;
-          } else if (section.type === 'menu' && (!(defaultData as any).categories || (defaultData as any).categories.length === 0)) {
-            defaultData = {
-              title: 'Nuestro Menú',
-              categories: [{ name: 'Especialidades', items: [{ name: 'Plato Ejemplo', desc: 'Descripción del plato...', price: '$15.00' }] }]
-            } as any;
-          }
-
-          const newSection: Section = { ...section, data: defaultData, id: `sec-${Date.now()}`, style: defaultStyle };
+          const newSection: Section = { ...section, id: `sec-${Date.now()}`, style: { padding: 'py-16', alignment: 'text-center', backgroundColor: 'bg-transparent' } } as Section;
           return { ...site, sections: [...site.sections, newSection] };
         })
       })),
       removeSection: (siteId, sectionId) => set((state) => ({
-        sites: state.sites.map(site => {
-          if (site.id !== siteId) return site;
-          return { ...site, sections: site.sections.filter(s => s.id !== sectionId) };
-        })
+        sites: state.sites.map(site => site.id === siteId ? { ...site, sections: site.sections.filter(s => s.id !== sectionId) } : site)
       })),
       updateSection: (siteId, sectionId, data) => set((state) => ({
-        sites: state.sites.map(site => {
-          if (site.id !== siteId) return site;
-          return {
-            ...site,
-            sections: site.sections.map(s => s.id === sectionId ? { ...s, data: { ...s.data, ...data } } : s)
-          };
-        })
+        sites: state.sites.map(site => site.id === siteId ? {
+          ...site,
+          sections: site.sections.map(s => s.id === sectionId ? { ...s, data: { ...s.data, ...data } } : s)
+        } : site)
       })),
       updateSectionStyle: (siteId, sectionId, styleUpdates) => set((state) => ({
-        sites: state.sites.map(site => {
-          if (site.id !== siteId) return site;
-          return {
-            ...site,
-            sections: site.sections.map(s => s.id === sectionId ? { ...s, style: { ...s.style, ...styleUpdates } as SectionStyle } : s)
-          };
-        })
+        sites: state.sites.map(site => site.id === siteId ? {
+          ...site,
+          sections: site.sections.map(s => s.id === sectionId ? { ...s, style: { ...s.style, ...styleUpdates } as SectionStyle } : s)
+        } : site)
       })),
       duplicateSection: (siteId, sectionId) => set((state) => ({
         sites: state.sites.map(site => {
           if (site.id !== siteId) return site;
           const sectionIndex = site.sections.findIndex(s => s.id === sectionId);
           if (sectionIndex === -1) return site;
-          
           const sectionToCopy = site.sections[sectionIndex];
           const duplicatedSection: Section = { 
             ...sectionToCopy, 
             id: `sec-${Date.now()}-${Math.random()}`,
-            data: JSON.parse(JSON.stringify(sectionToCopy.data)), // Deep copy data
+            data: JSON.parse(JSON.stringify(sectionToCopy.data)),
             style: sectionToCopy.style ? { ...sectionToCopy.style } : undefined
-          };
-          
+          } as Section;
           const newSections = [...site.sections];
           newSections.splice(sectionIndex + 1, 0, duplicatedSection);
-          
           return { ...site, sections: newSections };
         })
       })),
@@ -295,25 +281,12 @@ export const useStore = create<AppState>()(
         })
       })),
 
-      // Saving status
       savingStatus: 'idle',
-      lastSaved: null,
       hasUnsavedChanges: false,
-      setSavingStatus: (status) => set((state) => ({ 
-        savingStatus: status,
-        lastSaved: status === 'saved' ? new Date() : state.lastSaved
-      })),
+      lastSaved: null,
+      setSavingStatus: (status) => set({ savingStatus: status }),
       setHasUnsavedChanges: (hasChanges) => set({ hasUnsavedChanges: hasChanges }),
     }),
-    {
-      name: 'webforgex-storage',
-      onRehydrateStorage: () => (state) => {
-        if (state?.isDarkMode) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    }
+    { name: 'webforgex-storage' }
   )
 );

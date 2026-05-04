@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MonitorSmartphone, Lock, Mail, User } from 'lucide-react';
-import { registerUser } from '../firebase/auth';
+import { MonitorSmartphone, Lock, Mail, User as UserIcon } from 'lucide-react';
+import { useAuthStore } from '../store/useAuthStore';
+import { API_URL } from '../config/api';
 import toast from 'react-hot-toast';
 
 export default function Register() {
@@ -9,6 +10,7 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -16,11 +18,23 @@ export default function Register() {
     setLoading(true);
     
     try {
-      await registerUser(email, password);
-      toast.success('¡Cuenta creada con éxito!');
-      navigate('/dashboard');
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setAuth(data.user, data.token);
+        toast.success('¡Cuenta creada con éxito!');
+        navigate('/dashboard');
+      } else {
+        toast.error(data.message || 'Error al registrarse');
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Error al registrarse');
+      toast.error('Error de conexión con el servidor');
     } finally {
       setLoading(false);
     }
@@ -41,7 +55,7 @@ export default function Register() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4 rounded-md shadow-sm">
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 id="name"
                 name="name"

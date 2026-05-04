@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useStore } from './store/useStore';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { initAuthListener } from './firebase/auth';
 
 // Layouts & Components
 import Navbar from './components/Navbar';
@@ -20,12 +19,6 @@ import PublicSite from './pages/PublicSite';
 
 function App() {
   const isDarkMode = useStore((state) => state.isDarkMode);
-
-  useEffect(() => {
-    // Inicializar listener de Firebase Auth
-    const unsubscribe = initAuthListener();
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (isDarkMode) {

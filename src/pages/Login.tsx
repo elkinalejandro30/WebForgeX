@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MonitorSmartphone, Lock, Mail, Loader2 } from 'lucide-react';
-import { loginUser, resetPassword } from '../firebase/auth';
+import { useAuthStore } from '../store/useAuthStore';
+import { API_URL } from '../config/api';
 import toast from 'react-hot-toast';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [resetLoading, setResetLoading] = useState(false);
+  const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -16,11 +17,23 @@ export default function Login() {
     setLoading(true);
     
     try {
-      await loginUser(email, password);
-      toast.success('¡Bienvenido de nuevo!');
-      navigate('/dashboard');
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setAuth(data.user, data.token);
+        toast.success('¡Bienvenido de nuevo!');
+        navigate('/dashboard');
+      } else {
+        toast.error(data.message || 'Error al iniciar sesión');
+      }
     } catch (error: any) {
-      toast.error(error.message || 'Error al iniciar sesión');
+      toast.error('Error de conexión con el servidor');
     } finally {
       setLoading(false);
     }
@@ -28,18 +41,24 @@ export default function Login() {
 
   const handleResetPassword = async () => {
     if (!email) {
-      toast.error('Por favor, ingresa tu correo electrónico primero');
+      toast.error('Ingresa tu email primero');
       return;
     }
     
-    setResetLoading(true);
     try {
-      await resetPassword(email);
-      toast.success('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
-    } catch (error: any) {
-      toast.error(error.message || 'Error al enviar el correo de recuperación');
-    } finally {
-      setResetLoading(false);
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error('Error al solicitar recuperación');
     }
   };
 
@@ -91,10 +110,9 @@ export default function Login() {
             <button
               type="button"
               onClick={handleResetPassword}
-              disabled={resetLoading}
-              className="text-sm font-medium text-primary hover:text-indigo-500 transition-colors disabled:opacity-50"
+              className="text-sm font-medium text-primary hover:text-indigo-500 transition-colors"
             >
-              {resetLoading ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
+              ¿Olvidaste tu contraseña?
             </button>
           </div>
 

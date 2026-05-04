@@ -1,39 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { Plus, Edit2, Trash2, Globe, ShoppingBag, BookOpen, LayoutTemplate, Copy, Eye, MousePointerClick, TrendingUp, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Plus, Globe, ShoppingBag, BookOpen, LayoutTemplate, Copy, Eye, MousePointerClick, TrendingUp, CheckCircle, XCircle, Edit2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getProjectsByUser, deleteProject } from '../firebase/firestore';
 
 export default function Dashboard() {
-  const { sites, setSites, duplicateSite, togglePublishSite, deleteSite } = useStore();
+  const { sites, fetchSites, duplicateSite, togglePublishSite, deleteSite } = useStore();
   const user = useAuthStore(state => state.user);
-  const [loading, setLoading] = useState(sites.length === 0);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadProjects = async () => {
-      if (user?.uid) {
-        // Si no hay sitios en cache, mostrar loading
-        if (sites.length === 0) setLoading(true);
-        
-        try {
-          const projects = await getProjectsByUser(user.uid);
-          setSites(projects);
-        } catch (error) {
-          console.error("Dashboard error:", error);
-          toast.error('Error al sincronizar proyectos');
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setLoading(false);
-      }
-    };
-    loadProjects();
-  }, [user?.uid, setSites]);
+    if (user) {
+      fetchSites();
+    }
+  }, [user]);
 
   const userPlan = user?.plan || 'free';
   const maxSites = userPlan === 'free' ? 1 : userPlan === 'pro' ? 5 : 20;
@@ -69,19 +50,10 @@ export default function Dashboard() {
     toast.success(`Sitio "${name}" duplicado con éxito`);
   };
 
-  const handleDelete = async (id: string, name: string) => {
+  const handleDelete = (id: string, name: string) => {
     if (window.confirm(`¿Estás seguro de eliminar "${name}" de forma permanente?`)) {
-      setDeletingId(id);
-      const toastId = toast.loading('Eliminando proyecto...');
-      try {
-        await deleteProject(id);
-        deleteSite(id); // Actualizar estado local inmediatamente
-        toast.success(`Sitio "${name}" eliminado`, { id: toastId });
-      } catch (error) {
-        toast.error('Error al eliminar el proyecto', { id: toastId });
-      } finally {
-        setDeletingId(null);
-      }
+      deleteSite(id);
+      toast.success(`Sitio "${name}" eliminado`);
     }
   };
 
@@ -108,7 +80,7 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              ¡Hola, {user?.displayName || user?.email?.split('@')[0] || 'creador'}! 👋
+              ¡Hola, {user?.name || user?.email?.split('@')[0] || 'creador'}! 👋
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
               Gestiona tus sitios o crea uno nuevo.
@@ -123,29 +95,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 animate-pulse">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 h-64">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2"></div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                  <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                  <div className="h-10 bg-gray-200 dark:bg-gray-800 rounded"></div>
-                </div>
-                <div className="mt-8 flex justify-end space-x-2">
-                  <div className="h-8 w-24 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : sites.length === 0 ? (
+        {sites.length === 0 ? (
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 p-12 text-center animate-fade-in">
             <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
               <Globe className="h-10 w-10 text-primary" />
@@ -261,15 +211,10 @@ export default function Dashboard() {
                       </button>
                       <button 
                         onClick={() => handleDelete(site.id, site.name)}
-                        disabled={deletingId === site.id}
-                        className={`p-2 rounded-lg transition-colors ${
-                          deletingId === site.id 
-                            ? 'text-gray-400 bg-gray-100 dark:bg-gray-800' 
-                            : 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30'
-                        }`}
+                        className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                         title="Eliminar permanentemente"
                       >
-                        {deletingId === site.id ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 className="h-5 w-5" />}
+                        <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
