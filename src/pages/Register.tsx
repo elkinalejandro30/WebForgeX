@@ -17,27 +17,21 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     
-    try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
+    // Simulación de registro para prototipo
+    setTimeout(() => {
+      const mockUser = {
+        id: Date.now(),
+        email: email,
+        name: name,
+        plan: 'free' as const
+      };
+      const mockToken = 'mock-jwt-token-' + Date.now();
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        setAuth(data.user, data.token);
-        toast.success('¡Cuenta creada con éxito!');
-        navigate('/dashboard');
-      } else {
-        toast.error(data.message || 'Error al registrarse');
-      }
-    } catch (error: any) {
-      toast.error('Error de conexión con el servidor');
-    } finally {
+      setAuth(mockUser, mockToken);
+      toast.success('¡Cuenta creada (Modo Prototipo)!');
       setLoading(false);
-    }
+      navigate('/dashboard');
+    }, 1000);
   };
 
   return (

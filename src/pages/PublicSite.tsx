@@ -17,20 +17,21 @@ export default function PublicSite() {
       
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/api/site/${projectId}`);
-        const data = await res.json();
+        // En modo prototipo, buscamos el sitio en el localStorage a través del store
+        const sites = JSON.parse(localStorage.getItem('webforgex-storage') || '{}')?.state?.sites || [];
+        const foundSite = sites.find((s: Site) => s.id === projectId);
         
-        if (res.ok) {
-          if (data.published) {
-            setSite(data);
+        if (foundSite) {
+          if (foundSite.published) {
+            setSite(foundSite);
           } else {
             setError('Este sitio aún no ha sido publicado.');
           }
         } else {
-          setError(data.message || 'El sitio solicitado no existe.');
+          setError('El sitio solicitado no existe en este navegador.');
         }
       } catch (err) {
-        setError('Error de conexión con el servidor.');
+        setError('Error al cargar el sitio local.');
       } finally {
         setLoading(false);
       }

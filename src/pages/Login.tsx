@@ -16,27 +16,21 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     
-    try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+    // Simulación de login para prototipo
+    setTimeout(() => {
+      const mockUser = {
+        id: 1,
+        email: email,
+        name: email.split('@')[0],
+        plan: 'free' as const
+      };
+      const mockToken = 'mock-jwt-token-' + Date.now();
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        setAuth(data.user, data.token);
-        toast.success('¡Bienvenido de nuevo!');
-        navigate('/dashboard');
-      } else {
-        toast.error(data.message || 'Error al iniciar sesión');
-      }
-    } catch (error: any) {
-      toast.error('Error de conexión con el servidor');
-    } finally {
+      setAuth(mockUser, mockToken);
+      toast.success('¡Bienvenido (Modo Prototipo)!');
       setLoading(false);
-    }
+      navigate('/dashboard');
+    }, 1000);
   };
 
   const handleResetPassword = async () => {

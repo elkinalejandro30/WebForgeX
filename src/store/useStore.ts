@@ -151,62 +151,19 @@ export const useStore = create<AppState>()(
       
       sites: [],
       fetchSites: async () => {
-        try {
-          const res = await fetch(`${API_URL}/sites`, { headers: getHeaders() });
-          if (res.ok) {
-            const data = await res.json();
-            set({ sites: data });
-          }
-        } catch (err) {
-          console.error("Error fetching sites:", err);
-        }
+        // En modo prototipo funcional, no hacemos nada ya que persist se encarga de cargar del localStorage
       },
       addSite: async (site) => {
-        try {
-          const res = await fetch(`${API_URL}/sites`, {
-            method: 'POST',
-            headers: getHeaders(),
-            body: JSON.stringify(site)
-          });
-          if (res.ok) {
-            set((state) => ({ sites: [...state.sites, site] }));
-          }
-        } catch (err) {
-          console.error("Error adding site:", err);
-        }
+        set((state) => ({ sites: [...state.sites, site] }));
       },
       updateSite: async (id, updates) => {
-        const site = get().sites.find(s => s.id === id);
-        if (!site) return;
-        const updatedSite = { ...site, ...updates };
-        try {
-          const res = await fetch(`${API_URL}/sites/${id}`, {
-            method: 'PUT',
-            headers: getHeaders(),
-            body: JSON.stringify(updatedSite)
-          });
-          if (res.ok) {
-            set((state) => ({
-              sites: state.sites.map(s => s.id === id ? updatedSite : s),
-              lastSaved: Date.now()
-            }));
-          }
-        } catch (err) {
-          console.error("Error updating site:", err);
-        }
+        set((state) => ({
+          sites: state.sites.map(s => s.id === id ? { ...s, ...updates } : s),
+          lastSaved: Date.now()
+        }));
       },
       deleteSite: async (id) => {
-        try {
-          const res = await fetch(`${API_URL}/sites/${id}`, {
-            method: 'DELETE',
-            headers: getHeaders()
-          });
-          if (res.ok) {
-            set((state) => ({ sites: state.sites.filter(s => s.id !== id) }));
-          }
-        } catch (err) {
-          console.error("Error deleting site:", err);
-        }
+        set((state) => ({ sites: state.sites.filter(s => s.id !== id) }));
       },
       duplicateSite: (id) => {
         const siteToDuplicate = get().sites.find(s => s.id === id);
