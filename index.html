@@ -2,13 +2,11 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Montserrat:wght@400;500;700;800&family=Playfair+Display:wght@400;500;700;800&family=Poppins:wght@400;500;700;800&family=Roboto:wght@400;500;700;800&display=swap" rel="stylesheet">
     <title>WebForgeX - Creador de Sitios</title>
     <script type="text/javascript">
       // Single Page Apps for GitHub Pages
-      // https://github.com/rafgraph/spa-github-pages
       (function(l) {
         if (l.search[1] === '/' ) {
           var decoded = l.search.slice(1).split('&').map(function(s) { 
@@ -20,10 +18,124 @@
         }
       }(window.location))
     </script>
-    <script type="module" crossorigin src="/assets/index-B-V3VP0M.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-C30xnM-3.css">
+    <script type="module" crossorigin src="/WebForgeX/assets/index-XHT0S-Ew.js"></script>
+    <link rel="stylesheet" crossorigin href="/WebForgeX/assets/index-CYF032tQ.css">
   </head>
   <body class="bg-gray-50 text-gray-900 dark:bg-darker dark:text-gray-100 transition-colors duration-200">
     <div id="root"></div>
+
+    <!-- Static Landing Page (visible until React hydrates) -->
+    <div id="static-landing" class="flex flex-col min-h-screen bg-white dark:bg-darker transition-colors duration-200 overflow-x-hidden font-inter">
+      <style>
+        /* Only show static landing on home path */
+        #static-landing {
+          display: flex;
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          z-index: 1000;
+          background: white;
+        }
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+          100% { transform: translateY(0px); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 1s ease-out forwards; }
+        .animate-fade-in-up { opacity: 0; animation: fade-in-up 1s ease-out forwards; }
+      </style>
+
+      <!-- Static Navbar -->
+      <nav class="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 dark:bg-darker/80 border-b border-gray-200 dark:border-gray-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="window.location.href='/WebForgeX/'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-indigo-600"><rect width="14" height="10" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/><path d="M20 5v10"/><path d="M17 9h6"/></svg>
+              <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                WebForgeX
+              </span>
+            </div>
+            <div class="flex items-center space-x-4">
+              <a href="/WebForgeX/login" class="text-sm font-medium hover:text-indigo-600 transition-colors">Ingresar</a>
+              <a href="/WebForgeX/register" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm">Comenzar gratis</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Hero Section -->
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 lg:pt-32 lg:pb-24">
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-indigo-600/10 blur-[100px]"></div>
+        <div class="relative z-10 flex flex-col items-center text-center max-w-5xl mx-auto">
+          <div class="inline-flex items-center space-x-2 bg-indigo-600/10 dark:bg-indigo-600/20 text-indigo-600 px-5 py-2.5 rounded-full mb-10 font-bold text-sm border border-indigo-600/20 animate-fade-in shadow-sm">
+            <span class="flex h-2.5 w-2.5 rounded-full bg-indigo-600"></span>
+            <span class="tracking-wide uppercase">Constructor Visual Inteligente</span>
+          </div>
+          <h1 class="text-6xl md:text-8xl font-black tracking-tighter text-gray-900 dark:text-white mb-8 leading-[1.1] animate-fade-in-up">
+            Tu sitio web, <br />
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 drop-shadow-sm">forjado a la perfección.</span>
+          </h1>
+          <p class="mt-4 text-xl md:text-2xl text-gray-500 dark:text-gray-400 mb-12 leading-relaxed max-w-3xl animate-fade-in-up font-medium" style="animation-delay: 0.2s">
+            La herramienta definitiva para crear sitios web profesionales en segundos. <span class="text-gray-900 dark:text-white font-bold">Sin código, sin límites</span>, solo pura creatividad.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-6 mb-20 animate-fade-in-up" style="animation-delay: 0.4s">
+            <a href="/WebForgeX/register" class="inline-flex items-center justify-center px-10 py-5 text-xl font-bold rounded-2xl text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-2xl hover:shadow-indigo-600/40 transform hover:-translate-y-1 active:scale-95">
+              Comienza gratis hoy
+            </a>
+            <a href="/WebForgeX/login" class="inline-flex items-center justify-center px-10 py-5 text-xl font-bold rounded-2xl text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all shadow-xl transform hover:-translate-y-1 active:scale-95">
+              Ver demostración
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="py-20 text-center text-gray-400 text-sm">
+        Cargando experiencia interactiva...
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        const landing = document.getElementById('static-landing');
+        const baseUrl = '/WebForgeX/';
+        const isHome = window.location.pathname === baseUrl || window.location.pathname === baseUrl.slice(0, -1) || window.location.pathname === '/';
+        
+        if (!isHome) {
+          landing.style.display = 'none';
+        }
+
+        document.addEventListener('click', function(e) {
+          const target = e.target.closest('a');
+          if (target && target.getAttribute('href') && target.getAttribute('href').startsWith(baseUrl)) {
+            e.preventDefault();
+            const href = target.getAttribute('href');
+            window.history.pushState({}, '', href);
+            window.dispatchEvent(new PopStateEvent('popstate'));
+            if (href !== baseUrl && href !== baseUrl.slice(0, -1)) {
+              landing.style.display = 'none';
+            }
+          }
+        });
+
+        const observer = new MutationObserver(function(mutations) {
+          if (document.getElementById('root').children.length > 0) {
+            landing.style.display = 'none';
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.getElementById('root'), { childList: true });
+      })();
+    </script>
   </body>
 </html>
